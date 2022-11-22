@@ -10,7 +10,13 @@
         - nginx 
         - postgresql
       state: latest
-  
+    register: packages
+
+  - name: Display debug message
+    ansible.builtin.debug:
+#      msg: "The registered output is {{ packages }}"
+      var: packages
+      
   - name: Ensure Nginx is started
     ansible.builtin.service:
       name: nginx
@@ -31,7 +37,13 @@
       name: ntp
       update_cache: yes
       state: latest
-  
+    register: ntp_package
+
+  - name: Display debug message
+    ansible.builtin.debug:
+      var: ntp_package
+
+
   - name: Ensure the service is running
     ansible.builtin.service:
       name: ntp
@@ -47,3 +59,22 @@
       name: "*"
       state: latest
       update_cache: yes
+    register: update_all
+
+  - name: Display debug message
+    ansible.builtin.debug:
+      var: update_all.stdout_lines
+
+
+#Play 4
+- name: List the home directory of the user running the playbook
+  hosts: all
+  tasks:
+  - name: List the contents of the user home folder
+    ansible.builtin.shell:
+      cmd: ls -l /home/$(whoami)
+    register: list_home
+
+  - name: Display debug message
+    ansible.builtin.debug:
+      var: list_home.stdout_lines
