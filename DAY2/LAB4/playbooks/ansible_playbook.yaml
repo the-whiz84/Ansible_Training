@@ -1,0 +1,44 @@
+---
+# Play 1
+- name: Install nginx and postgresql on Web group
+  hosts: web
+  become: yes
+  tasks:
+  - name: Install latest Nginx and Postgresql versions
+    ansible.builtin.package: 
+      name: 
+        - nginx 
+        - postgresql
+      state: latest
+  
+  - name: Ensure the services are started
+    ansible.builtin.service:
+      name: nginx
+      state: started
+    ansible.builtin.service:
+      name: postgresql
+      state: started
+
+# Play 2
+- name: Install the latest NTP package and start it
+  hosts: all
+  become: yes
+  tasks:
+  - name: Install the NTP package
+    ansible.builtin.package:
+      name: ntp
+      update_cache: yes
+      state: latest
+  
+  - name: Ensure the service is running
+    ansible.builtin.service:
+      name: ntp
+      state: started
+
+# Play 3
+- name: Update the system
+  hosts: all
+  become: yes
+  tasks:
+  - name: Update the system using apt Update
+    ansible.builtin.shell: apt update && apt upgrade -y
