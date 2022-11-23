@@ -1,0 +1,135 @@
+---
+# Play1
+- name: Generate the SSL certificate and private key
+  hosts: test2server
+  
+  vars:
+    cert_name: nginx
+    path_to_cert: /home/radu/Ansible_Training/DAY3/LAB6/
+
+  tasks:
+  - name: Generate private key
+    ansible.builtin.openssl_privatekey:
+      path: "{{ path_to_cert }}{{ cert_name }}.key"
+      size: 2048
+  - name: Generate CSR
+    ansible.builtin.openssl_csr:
+      path: "{{ path_to_cert }}{{ cert_name }}.csr"
+      privatekey_path: "{{ path_to_cert }}{{ cert_name }}.key"
+  - name: Generate SSL certificate
+    ansible.builtin.openssl_certificate:
+      provider: selfsigned
+      path: "{{ path_to_cert }}{{ cert_name }}.crt"
+      privatekey_path: "{{ path_to_cert }}{{ cert_name }}.key"
+      csr_path: "{{ path_to_cert }}{{ cert_name }}.csr"
+
+
+# Play 2
+- name: Configure webserver with nginx
+  hosts: web
+  become: true
+  
+  vars:
+    tls_dir: /etc/nginx/ssl/
+    key_file: nginx.key
+    cert_file: nginx.crt
+    conf_file: /etc/nginx/sites-available/default
+    server_name: localhost
+  
+  handlers:
+  - name: Restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+  
+
+  tasks:
+  - name: Ensure that nginx is installed
+    ansible.builtin.package:
+      name: nginx
+      state: latest
+      update_cache: true
+
+  - name: Create directory for TLS certificates
+    ansible.builtin.file:
+      path: "{{ tls_dir }}"
+      state: directory
+      mode: '0750'
+
+  - name: Copy TLS files
+    ansible.builtin.copy:
+      src: "{{ item }}"
+      dest: "{{ tls_dir }}"
+      mode: '0600'
+    loop:
+      - "{{ key_file }}"
+      - "{{ cert_file }}"
+    notify: Restart nginx
+
+  - name: Create nginx config file
+    ansible.builtin.template:
+      src: nginx.config.j2
+      dest: "{{ conf_file }}"
+      mode: '0644'
+    notify: Restart nginx
+
+  - name: Enable configuration
+    ansible.builtin.file:
+      src: "{{ conf_file }}"
+      dest: /etc/nginx/sites-enabled/default
+      state: link
+
+  - name: Create index.html
+    ansible.builtin.template:
+      src: index.html.j2
+      dest: /usr/share/nginx/html/index.html
+      mode: '0644'
+
+# Play 3
+- name: Create 5 users using Loops
+  hosts: testserver
+  become: true
+
+  vars:
+    admin_group: adm
+
+  tasks:
+  - name: Create the 5 local users
+    ansible.builtin.user:
+      name: "{{ item }}"
+      shell: /bin/bash
+      groups: "{{ admin_group }}"
+      append: true
+    loop:
+      - randy
+      - jimmy
+      - timmy
+      - stan
+      - cartman
+  - name: Add a MOTD to the new users
+    ansible.builtin.template:
+      src: motd.j2
+      dest: /etc/motd
+      mode: '0644'
+
+# Play4
+- name: Disable and remove packages NTP and PostgreSQL
+  hosts: web
+  become: true
+
+  tasks:
+  - name: Stop the services
+    ansible.builtin.service:
+      name: "{{item}}"
+      state: stopped
+    loop:
+      - ntp
+      - postgresql
+
+  - name: Uninstall the packages
+    ansible.builtin.package:
+      name: "{{item}}"
+      state: absent
+    loop:
+      - ntp
+      - postgresql
