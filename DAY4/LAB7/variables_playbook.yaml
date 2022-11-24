@@ -113,3 +113,4 @@
     ansible.builtin.template:
       src: info.j2
       dest: ~/server_info.txt
+...
