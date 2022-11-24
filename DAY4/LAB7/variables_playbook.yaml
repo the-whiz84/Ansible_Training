@@ -1,7 +1,7 @@
 ---
 # Play1
 - name: Generate the SSL certificate and private key
-  hosts: test2server
+  hosts: ansible-controller
   
   vars_files:
   - ssl.yaml
@@ -78,3 +78,36 @@
       src: index.html.j2
       dest: /usr/share/nginx/html/index.html
       mode: '0644'
+
+# Play 3
+- name: Configure the hostname of all servers
+  hosts: all
+  become: true
+
+  tasks:
+  - name: Add the hostname to /etc/hosts
+    ansible.builtin.lineinfile:
+      dest: /etc/hosts
+      insertafter: '^::1[\t]+ip6-local*.*'
+      state: present
+      line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }}"
+    register: check
+
+  - name: Set the hostname on each server
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
+
+  - name: Print the output from /etc/hosts
+    ansible.builtin.debug:
+      var: check
+
+# Play 4
+- name: Create a template that collects the required info
+  hosts: all
+#  become: true
+
+  tasks:
+  - name: Collect the data from template and save it to a local file
+    ansible.builtin.template:
+      src: info.j2
+      dest: ~/server_info.txt
