@@ -9,5 +9,5 @@ nameservers={{ ansible_facts['dns']['nameservers'] }}
 totalmem={{ ansible_facts['memtotal_mb'] }}
 freemem={{ ansible_facts['memfree_mb'] }}
 kernel={{ ansible_facts['kernel'] }}
-lsb={{ ansible_facts.lsb }}
+lsb={{ ansible_facts.lsb.description }}
 pythonvers={{ ansible_python_version }}
