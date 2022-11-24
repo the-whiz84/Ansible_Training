@@ -87,10 +87,12 @@
   tasks:
   - name: Add the hostname to /etc/hosts
     ansible.builtin.lineinfile:
-      dest: /etc/hosts
-      insertafter: '^::1[\t]+ip6-local*.*'
-      state: present
-      line: "{{ ansible_default_ipv4.address }} {{ inventory_hostname }}"
+      path: /etc/hosts
+      search_string: '127.0.0.1'
+      line: "127.0.0.1 {{ inventory_hostname }}"
+      owner: root
+      group: root
+      mode: '0644'
     register: check
 
   - name: Set the hostname on each server
