@@ -1,0 +1,21 @@
+---
+- name: Generate private key
+  ansible.builtin.openssl_privatekey:
+    path: "{{ path_to_cert }}{{ cert_name }}.key"
+    size: 2048
+  delegate_to: localhost
+  
+- name: Generate CSR
+  ansible.builtin.openssl_csr:
+    path: "{{ path_to_cert }}{{ cert_name }}.csr"
+    privatekey_path: "{{ path_to_cert }}{{ cert_name }}.key"
+  delegate_to: localhost
+
+- name: Generate SSL certificate
+  ansible.builtin.openssl_certificate:
+    provider: selfsigned
+    path: "{{ path_to_cert }}{{ cert_name }}.crt"
+    privatekey_path: "{{ path_to_cert }}{{ cert_name }}.key"
+    csr_path: "{{ path_to_cert }}{{ cert_name }}.csr"
+  delegate_to: localhost
+...

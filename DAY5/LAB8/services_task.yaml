@@ -1,0 +1,17 @@
+---
+- name: Stop the services
+  ansible.builtin.service:
+    name: "{{item}}"
+    state: stopped
+  loop:
+    - ntp
+    - postgresql
+
+- name: Uninstall the packages
+  ansible.builtin.package:
+    name: "{{item}}"
+    state: absent
+  loop:
+    - ntp
+    - postgresql
+...

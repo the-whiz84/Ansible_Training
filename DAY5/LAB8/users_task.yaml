@@ -1,0 +1,13 @@
+---
+- name: Create the 5 local users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    shell: /bin/bash
+    groups: "{{ admin_group }}"
+    append: true
+  loop:
+    - randy
+    - jimmy
+    - timmy
+    - stan
+    - cartman

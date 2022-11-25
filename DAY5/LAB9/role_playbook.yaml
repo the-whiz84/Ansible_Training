@@ -1,0 +1,19 @@
+---
+# Generate the ssl keys on localhost
+- name: Generate the SSL keys on localhost
+  hosts: ansible-controller
+
+  roles:
+    - openssl_cert
+
+# Configure webserver using roles
+- name: Use the nginx and ntp roles to set up webserver
+  hosts: web
+  become: yes
+
+  roles:
+    - nginx
+    - dns
+    - installer
+    - add_users
+...

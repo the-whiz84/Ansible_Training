@@ -1,0 +1,36 @@
+---
+- name: Configure the hostname of all servers
+  hosts: all
+  become: true
+
+  tasks:
+  - name: Add the hostname to /etc/hosts
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      search_string: '127.0.0.1'
+      line: "127.0.0.1 {{ inventory_hostname }}"
+      owner: root
+      group: root
+      mode: '0644'
+    register: check
+
+  - name: Set the hostname on each server
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
+
+  - name: Print the output from /etc/hosts
+    ansible.builtin.debug:
+      var: check
+
+# Play 2
+- name: Add a MOTD to the new users
+  hosts: web
+  become: true
+
+  tasks:
+  - name: Create the MOTD file
+    ansible.builtin.template:
+      src: motd.j2
+      dest: /etc/motd
+      mode: '0644'
+...
